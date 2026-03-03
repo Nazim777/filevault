@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum FileType {
+  IMAGE
+  VIDEO
+  PDF
+  AUDIO
+}
+
+enum PackageTier {
+  FREE
+  SILVER
+  GOLD
+  DIAMOND
+}
+
+model User {
+  id                  String             @id @default(cuid())
+  name                String
+  email               String             @unique
+  password            String
+  role                Role               @default(USER)
+  isEmailVerified     Boolean            @default(false)
+  emailVerifyToken    String?
+  resetPasswordToken  String?
+  resetPasswordExpiry DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  subscriptions       UserSubscription[]
+  folders             Folder[]
+  files               File[]
+
+  @@map("users")
+}
+
+model SubscriptionPackage {
+  id               String      @id @default(cuid())
+  name             String      @unique
+  tier             PackageTier @unique
+  maxFolders       Int
+  maxNestingLevel  Int
+  allowedFileTypes FileType[]
+  maxFileSizeMB    Float
+  totalFileLimit   Int
+  filesPerFolder   Int
+  isActive         Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  subscriptions    UserSubscription[]
+
+  @@map("subscription_packages")
+}
+
+model UserSubscription {
+  id        String              @id @default(cuid())
+  userId    String
+  packageId String
+  startDate DateTime            @default(now())
+  endDate   DateTime?
+  isActive  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package   SubscriptionPackage @relation(fields: [packageId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  parentId  String?
+  nestLevel Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderChildren")
+  files    File[]
+
+  @@unique([name, userId, parentId])
+  @@map("folders")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  userId       String
+  folderId     String
+  fileType     FileType
+  mimeType     String
+  sizeBytes    Float
+  cloudinaryId String
+  cloudinaryUrl String
+  previewUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}

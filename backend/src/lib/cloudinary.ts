@@ -37,7 +37,7 @@ export function streamToCloudinary(
         folder: options.folder ?? 'filevault',
         resource_type: options.resource_type ?? 'auto',
         public_id: options.public_id,
-        timeout: 180000,
+        timeout: 600000,
       },
       (err, result) => {
         if (err || !result) return reject(err ?? new Error('Cloudinary upload failed'));

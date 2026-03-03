@@ -60,7 +60,7 @@ export class FileService {
     try {
       const bb = busboy({
         headers: req.headers,
-        limits: { fileSize: 600 * 1024 * 1024 },
+        limits: { fileSize: 20 * 1024 * 1024 },
       });
       const fields: Record<string, string> = {};
 

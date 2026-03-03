@@ -40,7 +40,7 @@ export class FileService {
       Connection: "keep-alive",
       "X-Accel-Buffering": "no",
     });
-    res.flushHeaders?.();
+
     const send = (event: string, data: object) => {
       try {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);

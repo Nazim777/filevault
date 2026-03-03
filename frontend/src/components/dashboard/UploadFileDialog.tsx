@@ -111,7 +111,7 @@ export function UploadFileDialog({
   open,
   onClose,
   folderId,
-  // onUploaded,
+  onUploaded,
 }: Props) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -143,6 +143,8 @@ export function UploadFileDialog({
       if (entries[i].status === "done") continue;
       update(i, { status: "uploading", percent: 0, phase: "uploading" });
 
+      
+
       await uploadWithProgress(
         entries[i].file,
         folderId,
@@ -155,9 +157,7 @@ export function UploadFileDialog({
 
           update(i, { status: "done", percent: 100 });
 
-          setTimeout(() => {
-            addFile(file);
-          }, 200);
+          addFile(file);
         },
 
         (msg) => {
@@ -166,11 +166,13 @@ export function UploadFileDialog({
         },
       );
     }
-    
 
+    setUploading(false);
     if (!anyError) {
       toast({ title: "Upload complete!" });
-       setUploading(false);
+      setEntries([]);
+      onClose();
+      // onUploaded();
     } else {
       toast({ variant: "destructive", title: "Some files failed to upload" });
     }
